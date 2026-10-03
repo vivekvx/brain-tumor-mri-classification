@@ -1,0 +1,22 @@
+{
+  "model": "standardized image features + balanced logistic regression",
+  "cv": "3-fold StratifiedGroupKFold on training source IDs",
+  "search_values": [
+    0.1,
+    1.0,
+    10.0
+  ],
+  "best_C": 10.0,
+  "cv_macro_f1": 0.7274703684632238,
+  "cv_by_C": {
+    "0.1": 0.7133296271134127,
+    "1.0": 0.7271030880539407,
+    "10.0": 0.7274703684632238
+  },
+  "validation": {
+    "accuracy": 0.768,
+    "precision_macro": 0.7519233590345428,
+    "recall_macro": 0.7469236705029387,
+    "f1_macro": 0.7469246995167966
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "brightness": {
+    "null": "The distribution of brightness is the same across all four classes.",
+    "alternative": "At least one class has a different brightness distribution.",
+    "test": "Kruskal-Wallis on source-level means",
+    "statistic": 706.8643891992683,
+    "p_value": 6.816624461981152e-153,
+    "class_medians": {
+      "glioma": 0.10387801378965378,
+      "meningioma": 0.1580217033624649,
+      "no_tumor": 0.22088120877742767,
+      "pituitary": 0.19788986444473267
+    },
+    "source_group_counts": {
+      "glioma": 317,
+      "meningioma": 378,
+      "no_tumor": 335,
+      "pituitary": 423
+    },
+    "p_holm": 1.3633248923962304e-152
+  },
+  "edge_strength": {
+    "null": "The distribution of edge_strength is the same across all four classes.",
+    "alternative": "At least one class has a different edge_strength distribution.",
+    "test": "Kruskal-Wallis on source-level means",
+    "statistic": 739.2373152729481,
+    "p_value": 6.509908501874452e-160,
+    "class_medians": {
+      "glioma": 0.027133909054100513,
+      "meningioma": 0.03775920160114765,
+      "no_tumor": 0.05410490930080414,
+      "pituitary": 0.045543499290943146
+    },
+    "source_group_counts": {
+      "glioma": 317,
+      "meningioma": 378,
+      "no_tumor": 335,
+      "pituitary": 423
+    },
+    "p_holm": 1.9529725505623355e-159
+  },
+  "entropy": {
+    "null": "The distribution of entropy is the same across all four classes.",
+    "alternative": "At least one class has a different entropy distribution.",
+    "test": "Kruskal-Wallis on source-level means",
+    "statistic": 627.3667433215005,
+    "p_value": 1.1760723324182059e-135,
+    "class_medians": {
+      "glioma": 2.3495537054339257,
+      "meningioma": 3.097622019530772,
+      "no_tumor": 3.4850077904402537,
+      "pituitary": 3.618265644224612
+    },
+    "source_group_counts": {
+      "glioma": 317,
+      "meningioma": 378,
+      "no_tumor": 335,
+      "pituitary": 423
+    },
+    "p_holm": 1.1760723324182059e-135
+  }
+}

@@ -1,0 +1,13 @@
+tensorflow==2.17.1
+tensorflow-metal==1.2.0; platform_system == "Darwin" and platform_machine == "arm64"
+numpy<2
+pandas
+scipy
+scikit-learn
+matplotlib
+seaborn
+Pillow
+streamlit
+nbformat
+nbclient
+ipykernel

@@ -1,0 +1,14 @@
+{
+  "model": "mobilenet_v2_finetuned",
+  "model_path": "mobilenet_v2_finetuned.h5",
+  "classes": [
+    "glioma",
+    "meningioma",
+    "no_tumor",
+    "pituitary"
+  ],
+  "image_size": [
+    160,
+    160
+  ]
+}
