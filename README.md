@@ -65,6 +65,8 @@ candidate on validation before updating the deployment choice.
 
 ## Streamlit
 
+Live app: https://tumor-mri-classification.streamlit.app/
+
 ```bash
 streamlit run app.py
 ```
