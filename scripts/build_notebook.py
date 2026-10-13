@@ -8,6 +8,13 @@ from pathlib import Path
 import nbformat as nbf
 import pandas as pd
 
+MODEL_LABELS = {
+    "custom_cnn": "Custom CNN",
+    "mobilenet_v2": "MobileNetV2",
+    "efficientnet_b0": "EfficientNetB0",
+    "mobilenet_v2_finetuned": "MobileNetV2 fine-tuned",
+}
+
 
 SUMMARY = """This project studies four-class classification of brain MRI images into glioma, meningioma, pituitary tumor, and no tumor. The supplied Roboflow export contains 2,443 JPEG images with predefined training, validation, and test directories. The project brief asks for a custom convolutional neural network, transfer learning, model comparison, and a Streamlit application that predicts a class from an uploaded image. This notebook connects those steps in a reproducible workflow and keeps the same class order from data loading through deployment.
 
@@ -23,6 +30,7 @@ The Streamlit application loads the selected HDF5 model, accepts a JPG or PNG MR
 def main() -> None:
     assert 500 <= len(SUMMARY.split()) <= 600, len(SUMMARY.split())
     results = json.loads(Path("models/training_results.json").read_text())
+    deep_cv_results = json.loads(Path("reports/deep_cv.json").read_text())
     tests = json.loads(Path("reports/hypothesis_tests.json").read_text())
     cv = json.loads(Path("reports/cv_results.json").read_text())
     df = pd.read_csv("reports/image_features.csv")
@@ -113,6 +121,20 @@ display(deep_table)
 sns.barplot(data=deep_table, x='model', y='3-fold macro F1', hue='learning rate')
 plt.xticks(rotation=20); plt.tight_layout(); plt.show()
 print('Chosen learning rates:', {name: model['selected_learning_rate'] for name, model in deep_cv['models'].items()})""")
+    tuning_notes = []
+    for name, model in deep_cv_results["models"].items():
+        candidates = model["candidates"]
+        chosen_rate = model["selected_learning_rate"]
+        chosen_score = candidates[str(chosen_rate)]["mean_f1"]
+        alternative_score = min(candidate["mean_f1"] for candidate in candidates.values())
+        tuning_notes.append(
+            f"- **{MODEL_LABELS[name]}:** learning rate {chosen_rate:g} "
+            f"achieved grouped-CV macro F1 {chosen_score:.3f}, an improvement of "
+            f"{chosen_score - alternative_score:.3f} over the weaker tested rate."
+        )
+    md("**Learning-rate tuning outcome.** The chart and table above compare both rates for each architecture. "
+       "The two-epoch folds are a screening experiment, so these gains should not be read as final-model gains.\n\n"
+       + "\n".join(tuning_notes))
     code("""if not Path('models/deployment.json').exists():
     subprocess.run([sys.executable, '-m', 'src.train'], check=True)
 if not Path('models/mobilenet_v2_finetuned.h5').exists():
@@ -124,8 +146,21 @@ display(comparison.sort_values('f1_macro', ascending=False))
 comparison.set_index('model')[['accuracy','precision_macro','recall_macro','f1_macro']].plot(kind='bar', figsize=(10,4), ylim=(0,1), title='Validation metric comparison')
 plt.ylabel('Score'); plt.xticks(rotation=20); plt.tight_layout(); plt.show()
 print('Selected for deployment:', results['selected_model'])""")
+    md("**Why these evaluation metrics matter.** Accuracy describes the overall share of correct images but can hide class-specific errors. "
+       "Precision measures how often a predicted class is correct; low precision could cause unnecessary follow-up. "
+       "Recall measures how many examples of a class are found; low tumor-class recall could mean missed cases. "
+       "Macro F1 balances precision and recall while giving each class equal weight. These are research metrics, "
+       "not evidence of clinical benefit or patient-level performance.")
     for name in ("custom_cnn", "mobilenet_v2", "efficientnet_b0", "mobilenet_v2_finetuned"):
-        md(f"### {name.replace('_', ' ').title()}\n\nTraining and validation accuracy/loss are shown below. The model's `.h5` file is saved under `models/`. Validation accuracy, macro precision, macro recall, and macro F1 are compared in the table above. Macro recall is especially relevant to missed cases within individual classes; the confusion matrix below shows those errors directly.")
+        validation = results[name]["validation"]
+        improvement = ""
+        if name == "mobilenet_v2_finetuned":
+            delta = validation["f1_macro"] - results["mobilenet_v2"]["validation"]["f1_macro"]
+            improvement = f" Fine-tuning improved validation macro F1 by {delta:.3f} over frozen MobileNetV2."
+        md(f"### {MODEL_LABELS[name]}\n\n"
+           f"Validation accuracy was **{validation['accuracy']:.3f}** and macro F1 was **{validation['f1_macro']:.3f}**."
+           f"{improvement} Training and validation accuracy/loss are shown below. The model's `.h5` file is saved under `models/`. "
+           "The comparison chart above shows all four evaluation metrics; the confusion matrix below shows class-level errors.")
         code(f"display(Image(filename='reports/figures/{name}_training.png'))")
     md("### Held-out test evaluation\n\nSelection was fixed from validation macro F1. The following test metrics and confusion matrices are reported only after model selection. A false negative for a tumor class or a false positive for no tumor may have different consequences; neither can be judged clinically from this dataset alone.")
     code("""test_scores = pd.DataFrame([{'model': name, **{k: results[name]['test'][k] for k in ['accuracy','precision_macro','recall_macro','f1_macro']}} for name in names])
@@ -141,7 +176,7 @@ plt.tight_layout(); plt.show()""")
     code("""if not Path('reports/figures/16_occlusion_explanation.png').exists():
     subprocess.run([sys.executable, '-m', 'src.explain'], check=True)
 display(Image(filename='reports/figures/16_occlusion_explanation.png'))""")
-    md("## 8. Streamlit deployment\n\n`app.py` loads `models/deployment.json` and the selected `.h5` file. It accepts JPG/PNG uploads, displays the predicted class and four scores, handles invalid files, and carries a research-use warning. The next cell builds a portable deployment ZIP. On a local machine, run `streamlit run app.py`; on Streamlit Community Cloud, publish the repository and set `app.py` as the entry point.")
+    md("## 8. Streamlit deployment\n\n`app.py` loads `models/deployment.json` and the selected `.h5` file. The **Try the model** tab accepts JPG/PNG uploads, displays the predicted class and four scores, and handles invalid files. **Model results** shows held-out metrics, model comparison, training curves, and the confusion matrix; **Explore the data** displays the 15 EDA charts. The app carries a research-use warning. The next cell builds a portable deployment ZIP. On a local machine, run `streamlit run app.py`; on Streamlit Community Cloud, publish the repository and set `app.py` as the entry point.")
     code("""subprocess.run([sys.executable, 'scripts/package_deployment.py'], check=True)
 print('Local launch: streamlit run app.py')
 print('Bundle: deployment/brain_mri_streamlit.zip')""")
