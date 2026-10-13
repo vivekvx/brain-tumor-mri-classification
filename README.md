@@ -76,9 +76,13 @@ model score, and scores for all four classes. The score is not a calibrated
 clinical probability. Deployment requires the selected `.h5` file and
 `models/deployment.json` alongside `app.py`; no training data is needed at
 inference time.
+The **Model results** tab shows held-out metrics, all four model scores,
+training curves, and the selected model's confusion matrix. **Explore the data**
+offers the 15 EDA charts and a link to the complete notebook.
 For Streamlit Community Cloud, use Python 3.11 and `app.py` as the entry
 point; the root `requirements.txt` supplies dependencies. The packaged ZIP
-contains a smaller deployment-only `requirements.txt` and the selected model.
+contains a smaller deployment-only `requirements.txt`, the selected model,
+saved metrics, and figures used by the app.
 
 ## Notebook
 
